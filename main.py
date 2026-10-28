@@ -13,7 +13,7 @@ from aiohttp import web
 # ПОДСТАВЬТЕ СВОЙ ТОКЕН НИЖЕ (ОБЯЗАТЕЛЬНО В КАВЫЧКАХ)
 API_TOKEN = '9150952667:AAHrVOTtvqm7NWRHHuGfYi2HfsSWh_hnQl0'
 # ССЫЛКУ ПОКА НЕ ТРОГАЙ, МЫ ОБНОВИМ ЕЕ В КОНЦЕ
-MINI_APP_LINK = 'https://google.com' 
+MINI_APP_LINK = 'https://atp-bot.onrender.com/' 
 DB_NAME = "atp_journal.db"
 
 PORT = int(os.environ.get("PORT", 8080))
