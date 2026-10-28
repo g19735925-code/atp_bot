@@ -11,7 +11,7 @@ from aiohttp import web
 
 # ================= НАСТРОЙКИ =================
 # ПОДСТАВЬТЕ СВОЙ ТОКЕН НИЖЕ (ОБЯЗАТЕЛЬНО В КАВЫЧКАХ)
-API_TOKEN = 'ВСТАВЬ_СЮДА_ТОКЕН_ИЗ_ШАГА_1'
+API_TOKEN = '9150952667:AAHrVOTtvqm7NWRHHuGfYi2HfsSWh_hnQl0'
 # ССЫЛКУ ПОКА НЕ ТРОГАЙ, МЫ ОБНОВИМ ЕЕ В КОНЦЕ
 MINI_APP_LINK = 'https://google.com' 
 DB_NAME = "atp_journal.db"
