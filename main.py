@@ -131,20 +131,44 @@ async def handle_poll_answer(poll_answer: types.PollAnswer):
 async def index(request):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT name, skips, avg_grade, status FROM students")
+    
+    # Обработка действий старосты (если нажали на кнопку в интерфейсе)
+    params = request.rel_url.query
+    if 'action' in params and 'id' in params:
+        student_id = params['id']
+        action = params['action']
+        if action == 'sick':
+            cursor.execute("UPDATE students SET status = 'Больничный' WHERE id = ?", (student_id,))
+        elif action == 'active':
+            cursor.execute("UPDATE students SET status = 'Активен' WHERE id = ?", (student_id,))
+        elif action == 'grade5':
+            cursor.execute("UPDATE students SET avg_grade = ROUND((avg_grade + 5)/2, 1) WHERE id = ?", (student_id,))
+        elif action == 'skip':
+            cursor.execute("UPDATE students SET skips = skips + 2 WHERE id = ?", (student_id,))
+        conn.commit()
+
+    cursor.execute("SELECT id, name, skips, avg_grade, status FROM students")
     students = cursor.fetchall()
     conn.close()
 
     students_html = ""
     for s in students:
-        badge_class = "badge-active" if s[3] == "Активен" else "badge-sick"
+        s_id, name, skips, grade, status = s
+        badge_class = "badge-active" if status == "Активен" else "badge-sick"
+        
+        # Кнопки действий для старосты
         students_html += f'''
         <div class="student-card">
             <div class="flex-row">
-                <strong>{s[0]}</strong>
-                <span class="badge {badge_class}">{s[3]}</span>
+                <strong>{name}</strong>
+                <span class="badge {badge_class}">{status}</span>
             </div>
-            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.8;">Пропуски: {s[1]} ч. | Ср. балл: {s[2]}</p>
+            <p style="margin: 5px 0; font-size: 14px; opacity: 0.8;">Пропуски: {skips} ч. | Ср. балл: {grade}</p>
+            <div class="actions" style="margin-top: 10px; display: flex; gap: 5px;">
+                <a href="/?action=grade5&id={s_id}" class="mini-btn btn-success">+5</a>
+                <a href="/?action=skip&id={s_id}" class="mini-btn btn-danger">+2ч пропуск</a>
+                { f'<a href="/?action=sick&id={s_id}" class="mini-btn btn-warn">Заболел</a>' if status == "Активен" else f'<a href="/?action=active&id={s_id}" class="mini-btn btn-success">Выздоровел</a>' }
+            </div>
         </div>
         '''
 
@@ -164,13 +188,17 @@ async def index(request):
             .badge {{ padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }}
             .badge-active {{ background: #2ecc71; color: white; }}
             .badge-sick {{ background: #e67e22; color: white; }}
-            .btn {{ width: 100%; background: var(--tg-theme-button-color, #3498db); color: var(--tg-theme-button-text-color, #ffffff); border: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 15px; }}
+            .mini-btn {{ padding: 6px 10px; border-radius: 6px; font-size: 12px; text-decoration: none; font-weight: bold; color: white; text-align: center; }}
+            .btn-success {{ background: #2ecc71; }}
+            .btn-danger {{ background: #e74c3c; }}
+            .btn-warn {{ background: #f39c12; }}
+            .btn-main {{ width: 100%; background: var(--tg-theme-button-color, #3498db); color: var(--tg-theme-button-text-color, #ffffff); border: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 15px; cursor: pointer; }}
         </style>
     </head>
     <body>
         <div class="header"><h2>Журнал старосты "АТП"</h2></div>
         <div id="group-list">{students_html}</div>
-        <button class="btn" onclick="window.Telegram.WebApp.close()">Закрыть</button>
+        <button class="btn-main" onclick="window.Telegram.WebApp.close()">Закрыть</button>
         <script>window.Telegram.WebApp.expand();</script>
     </body>
     </html>
